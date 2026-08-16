@@ -55,7 +55,11 @@ recommended_places = [
 def get_recommended_places():
     return recommended_places
 
-transportations = ["Bus", "Train", "Flight"]
+transportations = [
+    "Bus", 
+    "Train", 
+    "Flight"
+]
 
 @app.get('/api/v1/transportations')
 def get_transportations():
