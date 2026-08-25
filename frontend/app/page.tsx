@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import styles from "./page.module.css";
+import { getHeroImage } from "./destinationImages";
 
 export default function Home() {
   const [trip, setTrip] = useState<any>(null);
@@ -12,6 +13,7 @@ export default function Home() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setTrip(null);
 
     const formData = new FormData(e.currentTarget);
     
@@ -64,71 +66,86 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.formCard}>
-        <h1 className={styles.title}>KelanaAI</h1>
-        <p className={styles.subtitle}>Plan your next adventure</p>
-        
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>DESTINATION</label>
-            <input 
-              name="destination" 
-              className={styles.input}
-              placeholder="Japan"
-              defaultValue="Japan"
-              required 
-            />
+      <div className={styles.desktopLayout}>
+        <div className={styles.formSection}>
+          <div className={styles.formCard}>
+            <h1 className={styles.title}>KelanaAI</h1>
+            <p className={styles.subtitle}>Plan your next adventure</p>
+
+            <form onSubmit={handleSubmit} className={styles.form}>
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>DESTINATION</label>
+                <input
+                  name="destination"
+                  className={styles.input}
+                  placeholder="Japan"
+                  defaultValue="Japan"
+                  required
+                />
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>BUDGET (USD)</label>
+                <input
+                  name="budget"
+                  type="number"
+                  className={styles.input}
+                  placeholder="2000"
+                  defaultValue="2000"
+                  required
+                />
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>DAYS</label>
+                <input
+                  name="days"
+                  type="number"
+                  className={styles.input}
+                  placeholder="5"
+                  defaultValue="5"
+                  required
+                />
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>TRAVEL STYLE</label>
+                <input
+                  name="travel_style"
+                  className={styles.input}
+                  placeholder="Family"
+                  defaultValue="Family"
+                  required
+                />
+              </div>
+
+              <button type="submit" className={styles.button} disabled={loading}>
+                {loading ? "Generating..." : "Generate AI Trip"}
+              </button>
+            </form>
+
+            {error && <div className={styles.error}>Error: {error}</div>}
           </div>
+        </div>
 
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>BUDGET (USD)</label>
-            <input 
-              name="budget" 
-              type="number" 
-              className={styles.input}
-              placeholder="2000"
-              defaultValue="2000"
-              required 
-            />
-          </div>
-
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>DAYS</label>
-            <input 
-              name="days" 
-              type="number" 
-              className={styles.input}
-              placeholder="5"
-              defaultValue="5"
-              required 
-            />
-          </div>
-
-          <div className={styles.inputGroup}>
-            <label className={styles.label}>TRAVEL STYLE</label>
-            <input 
-              name="travel_style" 
-              className={styles.input}
-              placeholder="Family"
-              defaultValue="Family"
-              required 
-            />
-          </div>
-
-          <button type="submit" className={styles.button} disabled={loading}>
-            {loading ? "Generating..." : "Generate AI Trip"}
-          </button>
-        </form>
-
-        {error && <div className={styles.error}>Error: {error}</div>}
-        
+        <div className={styles.resultSection}>
         {loading && (
           <div className={styles.loadingOverlay}>
             <div className={styles.spinner}></div>
             <p className={styles.loadingText}>Generating your personalized trip...</p>
           </div>
         )}
-        
+
+        {trip && (
+          <header
+            className={styles.hero}
+            style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), url('${getHeroImage(trip.destination)}')` }}
+          >
+            <h1 className={styles.heroTitle}>{trip.destination}</h1>
+            <p className={styles.heroSubtitle}>Your AI-powered trip plan is ready</p>
+          </header>
+        )}
+
         {trip && (
           <div className={styles.result}>
             <h2>Your Trip Plan</h2>
@@ -162,7 +179,7 @@ export default function Home() {
                         border: "1px solid #e9ecef"
                       }}>
                         <h5 style={{ margin: "0 0 0.5rem 0", color: "#495057" }}>
-                          Day {day.day}: {day.title}
+                          {day.title}
                         </h5>
                         
                         {day.morning && (
@@ -293,7 +310,10 @@ export default function Home() {
             )}
           </div>
         )}
+        </div>
       </div>
+
+      <footer className={styles.footer}>© 2026 KelanaAI</footer>
     </div>
   );
 }
