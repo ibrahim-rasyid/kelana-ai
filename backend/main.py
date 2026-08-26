@@ -4,9 +4,13 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from dotenv import load_dotenv
+import os
 
 from models.trip import Trip
 from database import SessionLocal, init_db
+
+load_dotenv()
 
 # Dependency to get DB session
 def get_db():
@@ -15,8 +19,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-
 
 class TripRequest(BaseModel):
     destination     : str
@@ -29,7 +31,7 @@ app = FastAPI()
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Next.js default port
+    allow_origins=[os.getenv("FRONTEND_URL")],  # Next.js default port
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all headers

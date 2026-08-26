@@ -1,3 +1,15 @@
+export interface Trip {
+  id: number;
+  destination: string;
+  days: number;
+  budget: number;
+  category: string;
+  daily_budget: number;
+  travel_style: string;
+  ai_recommendation: string | null;
+  created_at: string;
+}
+
 export interface DailyItinerary {
   day: number;
   title: string;
