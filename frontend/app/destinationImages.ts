@@ -2,14 +2,11 @@
 // matching file into public/destinations/ to support a new destination.
 const DESTINATION_IMAGES: Record<string, string> = {
   japan: "/destinations/japan.jpg",
-  tokyo: "/destinations/japan.jpg",
   france: "/destinations/france.jpg",
-  paris: "/destinations/france.jpg",
-  bali: "/destinations/bali.jpg",
   indonesia: "/destinations/indonesia.jpg",
   italy: "/destinations/italy.jpg",
-  rome: "/destinations/italy.jpg",
   "south korea": "/destinations/south-korea.jpg",
+  russia: "/destinations/russia.jpg",
 };
 
 const DEFAULT_HERO_IMAGE = "/hero.jpg";

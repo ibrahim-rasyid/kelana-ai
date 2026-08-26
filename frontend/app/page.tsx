@@ -104,13 +104,17 @@ export default function Home() {
 
             <div className={styles.inputGroup}>
               <label className={styles.label}>TRAVEL STYLE</label>
-              <input
+              <select
                 name="travel_style"
                 className={styles.input}
-                placeholder="Family"
                 defaultValue="Family"
                 required
-              />
+              >
+                <option value="Family">Family</option>
+                <option value="Solo">Solo</option>
+                <option value="Couple">Couple</option>
+                <option value="Group">Group</option>
+              </select>
             </div>
 
             <button type="submit" className={styles.button} disabled={loading}>

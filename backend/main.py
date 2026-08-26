@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
+from typing import Literal
 import os
 
 from models.trip import Trip
@@ -24,7 +25,7 @@ class TripRequest(BaseModel):
     destination     : str
     days            : int
     budget          : float
-    travel_style    : str
+    travel_style    : Literal["Family", "Solo", "Couple", "Group"]
 
 app = FastAPI()
 
