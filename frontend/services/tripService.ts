@@ -2,8 +2,20 @@ import type { Trip } from "@/types/trip";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-export async function getTrips(): Promise<Trip[]> {
-    const res = await fetch(`${API_URL}/trips`);
+export class UnauthorizedError extends Error {
+    constructor() {
+        super("Unauthorized");
+        this.name = "UnauthorizedError";
+    }
+}
+
+export async function getTrips(token: string): Promise<Trip[]> {
+    const res = await fetch(`${API_URL}/trips`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.status === 401) {
+        throw new UnauthorizedError();
+    }
     if (!res.ok) {
         throw new Error(`Failed to fetch trips: ${res.status}`);
     }

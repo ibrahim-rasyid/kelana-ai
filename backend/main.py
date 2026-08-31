@@ -1,14 +1,18 @@
 from services.trip_services import calculate_daily_budget, get_trip_category, get_transportation, get_travel_season
 from services.bedrock_service import get_ai_recommendation
+from services.auth_service import register, login, SECRET_KEY, ALGORITHM
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 from typing import Literal
+from jose import jwt, JWTError
 import os
 
 from models.trip import Trip
+from models.users import User
 from database import SessionLocal, init_db
 
 load_dotenv()
@@ -21,11 +25,43 @@ def get_db():
     finally:
         db.close()
 
+bearer_scheme = HTTPBearer()
+
+# Dependency to resolve the authenticated user from the Authorization header
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    db: Session = Depends(get_db),
+) -> User:
+    token = credentials.credentials
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid authentication token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid authentication token")
+
+    user = db.query(User).filter(User.id == int(user_id)).first()
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    return user
+
 class TripRequest(BaseModel):
     destination     : str
     days            : int
     budget          : float
     travel_style    : Literal["Family", "Solo", "Couple", "Group"]
+
+class UserRequest(BaseModel):
+    name            : str
+    email           : str
+    password        : str
+
+class LoginRequest(BaseModel):
+    email           : str
+    password        : str
 
 app = FastAPI()
 
@@ -55,10 +91,9 @@ def health_check():
     }
 
 @app.post('/api/v1/trips')
-def create_trip(request: TripRequest, db: Session = Depends(get_db)):
+def create_trip(request: TripRequest, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     category        = get_trip_category(request.budget)
     daily_budget    = calculate_daily_budget(request.budget, request.days)
-    rec_transport   = get_transportation(category)
 
     trip = Trip(
         destination     = request.destination,
@@ -66,7 +101,8 @@ def create_trip(request: TripRequest, db: Session = Depends(get_db)):
         budget          = request.budget,
         category        = category,
         daily_budget    = daily_budget,
-        travel_style    = request.travel_style
+        travel_style    = request.travel_style,
+        user_id         = user.id
     )
 
     db.add(trip)
@@ -75,8 +111,10 @@ def create_trip(request: TripRequest, db: Session = Depends(get_db)):
     return trip
 
 @app.get("/api/v1/trips")
-def list_trips(db: Session = Depends(get_db)):
-    trips = db.query(Trip).all()
+def list_trips(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    trips = db.query(Trip).filter(
+        Trip.user_id == user.id
+    ).all()
     return trips
 
 @app.get("/api/v1/trips/{trip_id}")
@@ -173,3 +211,23 @@ transportations = [
 @app.get('/api/v1/transportations')
 def get_transportations():
     return transportations
+
+@app.post('/api/v1/auth/register')
+def register_user(user: UserRequest, db: Session = Depends(get_db)):
+    registered_user = register(user.name, user.email, user.password)
+    return registered_user
+
+@app.post('/api/v1/auth/login')
+def login_user(request: LoginRequest, db: Session = Depends(get_db)):
+    token_data = login(request.email, request.password)
+    return token_data
+
+@app.get('/api/v1/auth/me')
+def get_authenticated_user(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    total_trips = db.query(Trip).filter(Trip.user_id == user.id).count()
+    return {
+        "id"            : user.id,
+        "username"      : user.username,
+        "email"         : user.email,
+        "total_trips"   : total_trips
+    }
