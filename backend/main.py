@@ -118,17 +118,17 @@ def list_trips(db: Session = Depends(get_db), user: User = Depends(get_current_u
     return trips
 
 @app.get("/api/v1/trips/{trip_id}")
-def get_trip(trip_id: int, db: Session = Depends(get_db)):
-    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+def get_trip(trip_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    trip = db.query(Trip).filter(Trip.id == trip_id, Trip.user_id == user.id).first()
     # handling not found
     if trip is None:
         raise HTTPException(status_code=404, detail=f"Trip with id {trip_id} not found")
 
     return trip
 
-@app.delete('/api/v1/trips/{id}')
-def delete_trip(trip_id: int, db: Session = Depends(get_db)):
-    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+@app.delete('/api/v1/trips/{trip_id}')
+def delete_trip(trip_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    trip = db.query(Trip).filter(Trip.id == trip_id, Trip.user_id == user.id).first()
     if trip is None:
         raise HTTPException(status_code=404, detail=f"Trip with id {trip_id} not found")
     db.delete(trip)
@@ -136,12 +136,12 @@ def delete_trip(trip_id: int, db: Session = Depends(get_db)):
 
     return trip
 
-@app.put('/api/v1/trips/{id}')
-def edit_trip(trip_id:int, new_budget: float, db: Session = Depends(get_db)):
-    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+@app.put('/api/v1/trips/{trip_id}')
+def edit_trip(trip_id:int, new_budget: float, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    trip = db.query(Trip).filter(Trip.id == trip_id, Trip.user_id == user.id).first()
     if trip is None:
         raise HTTPException(status_code=404, detail=f"Trip with id {trip_id} not found")
-    
+
     category        = get_trip_category(new_budget)
     daily_budget    = calculate_daily_budget(new_budget, trip.days)
     rec_transport   = get_transportation(category)
@@ -150,14 +150,14 @@ def edit_trip(trip_id:int, new_budget: float, db: Session = Depends(get_db)):
     trip.category       = category
     trip.daily_budget   = daily_budget
     db.commit()
-    
+
     return trip
 
 @app.post('/api/v1/trips/{trip_id}/generate')
-def get_recommendation(trip_id: int, db: Session = Depends(get_db)):
+def get_recommendation(trip_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     import json
-    
-    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+
+    trip = db.query(Trip).filter(Trip.id == trip_id, Trip.user_id == user.id).first()
     if trip is None:
         raise HTTPException(status_code=404, detail=f"Trip with id {trip_id} not found")
     
