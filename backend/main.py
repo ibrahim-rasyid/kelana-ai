@@ -1,6 +1,7 @@
 from services.trip_services import calculate_daily_budget, get_trip_category, get_transportation, get_travel_season
 from services.bedrock_service import get_ai_recommendation
 from services.auth_service import register, login, SECRET_KEY, ALGORITHM
+from services.kb_service import ask_knowledge_base
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -62,6 +63,9 @@ class UserRequest(BaseModel):
 class LoginRequest(BaseModel):
     email           : str
     password        : str
+
+class QueryRequest(BaseModel):
+    query           : str
 
 app = FastAPI()
 
@@ -231,3 +235,11 @@ def get_authenticated_user(db: Session = Depends(get_db), user: User = Depends(g
         "email"         : user.email,
         "total_trips"   : total_trips
     }
+
+@app.post('/api/v1/ask')
+def ask_kb(request: QueryRequest):
+    try:
+        result = ask_knowledge_base(request.query)
+        return {"query": request.query, "answer": result["answer"], "source": result["source"]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -9,9 +9,11 @@ const AUTHENTICATED_LINKS = [
     { href: "/generate", label: "Generate" },
     { href: "/trips", label: "Trips" },
     { href: "/profile", label: "Profile" },
+    { href: "/assistant", label: "Assistant" },
 ];
 
 const GUEST_LINKS = [
+    { href: "/assistant", label: "Assistant" },
     { href: "/login", label: "Login" },
     { href: "/register", label: "Register" },
 ];
