@@ -22,10 +22,15 @@ export async function getTrips(token: string): Promise<Trip[]> {
     return res.json();
 }
 
-export async function getTripById(tripId: number): Promise<Trip | null> {
-    const res = await fetch(`${API_URL}/trips/${tripId}`);
+export async function getTripById(tripId: number, token: string): Promise<Trip | null> {
+    const res = await fetch(`${API_URL}/trips/${tripId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
     if (res.status === 404) {
         return null;
+    }
+    if (res.status === 401) {
+        throw new UnauthorizedError();
     }
     if (!res.ok) {
         throw new Error(`Failed to fetch trip ${tripId}: ${res.status}`);
