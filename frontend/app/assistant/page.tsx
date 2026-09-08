@@ -14,6 +14,10 @@ import {
 } from "@/services/assistantService";
 import type { Conversation, Message } from "@/types/assistant";
 
+function formatTime(iso: string) {
+    return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
 export default function AssistantPage() {
     const router = useRouter();
     const { token, isInitialized, logout } = useAuth();
@@ -33,7 +37,10 @@ export default function AssistantPage() {
     const [sending, setSending] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const [showScrollButton, setShowScrollButton] = useState(false);
+
     const bottomRef = useRef<HTMLDivElement>(null);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (!isInitialized) return;
@@ -80,6 +87,7 @@ export default function AssistantPage() {
                 if (cancelled) return;
                 setMessages(data);
                 setLoadingMessages(false);
+                setShowScrollButton(false);
             } catch (err) {
                 if (cancelled) return;
                 if (err instanceof UnauthorizedError) {
@@ -142,6 +150,17 @@ export default function AssistantPage() {
             }
             setError(err instanceof Error ? err.message : "Failed to rename conversation");
         }
+    };
+
+    const handleMessagesScroll = () => {
+        const el = messagesContainerRef.current;
+        if (!el) return;
+        const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+        setShowScrollButton(distanceFromBottom > 100);
+    };
+
+    const handleScrollToLatest = () => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
     };
 
     const handleSend = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -285,14 +304,18 @@ export default function AssistantPage() {
                 </div>
             </div>
 
-            <div className="flex flex-1 flex-col">
+            <div className="relative flex flex-1 flex-col">
                 {selectedId === null ? (
                     <div className="flex flex-1 items-center justify-center px-6 text-center text-black/50">
                         Select or start a new conversation to begin chatting.
                     </div>
                 ) : (
                     <>
-                        <div className="flex-1 space-y-3 overflow-y-auto p-4">
+                        <div
+                            ref={messagesContainerRef}
+                            onScroll={handleMessagesScroll}
+                            className="flex-1 space-y-3 overflow-y-auto p-4"
+                        >
                             {loadingMessages ? (
                                 <div className="flex justify-center py-6">
                                     <div className={formStyles.spinner}></div>
@@ -313,6 +336,15 @@ export default function AssistantPage() {
                                                 📄 {message.source}
                                             </p>
                                         )}
+                                        <p
+                                            className={`mt-1 text-[11px] ${
+                                                message.role === "user"
+                                                    ? "text-white/70"
+                                                    : "text-black/40"
+                                            }`}
+                                        >
+                                            {formatTime(message.created_at)}
+                                        </p>
                                     </div>
                                 ))
                             )}
@@ -325,6 +357,17 @@ export default function AssistantPage() {
 
                             <div ref={bottomRef} />
                         </div>
+
+                        {showScrollButton && (
+                            <button
+                                type="button"
+                                onClick={handleScrollToLatest}
+                                aria-label="Scroll to latest message"
+                                className="absolute bottom-20 right-6 flex h-9 w-9 items-center justify-center rounded-full bg-[#4a7dbe] text-white shadow-lg transition-colors hover:bg-[#3a6ba8]"
+                            >
+                                ↓
+                            </button>
+                        )}
 
                         {error && (
                             <div className="mx-4 mb-2 rounded-lg border border-red-200 bg-red-50 p-2 text-center text-sm text-red-600">
