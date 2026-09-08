@@ -15,6 +15,8 @@ load_dotenv()
 from database import Base
 from models.trip import Trip
 from models.users import User
+from models.conversations import Conversation
+from models.messages import Message
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

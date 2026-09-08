@@ -71,6 +71,20 @@ TRAVEL_PLANNER_PROMPT = (
     "- Return ONLY the JSON object, no additional text or markdown formatting"
 )
 
+CHAT_SYSTEM_PROMPT = (
+    "You are a helpful travel assistant embedded in a chat application. "
+    "Use the context below (retrieved from the traveler's knowledge base) to answer "
+    "when it is relevant. If the context doesn't help, answer from your general knowledge "
+    "and say so.\n\nContext:\n{context}"
+)
+
+CHAT_SYSTEM_PROMPT_NO_CONTEXT = (
+    "You are a helpful travel assistant embedded in a chat application. "
+    "No relevant context was found in the knowledge base for this message; "
+    "answer from your general knowledge and mention that you couldn't find "
+    "specific documentation on this."
+)
+
 # Reuse the same client across requests
 _bedrock_client = None
 
@@ -137,6 +151,32 @@ def get_ai_recommendation(
             "raw_response": response_text,
             "parse_error": str(e)
         }
+
+def get_chat_response(messages: list, system_context: str | None = None) -> str:
+    client = get_bedrock_client()
+
+    converse_messages = [
+        {
+            "role": item["role"],
+            "content": [{"text": item["content"]}]
+        }
+        for item in messages
+    ]
+
+    kwargs = {"modelId": MODEL_ID, "messages": converse_messages}
+    if system_context:
+        kwargs["system"] = [{"text": system_context}]
+
+    response = client.converse(**kwargs)
+
+    output_message = response["output"]["message"]
+    text_parts = [
+        block["text"]
+        for block in output_message["content"]
+        if "text" in block
+    ]
+
+    return "\n".join(text_parts)
 
 if __name__ == "__main__":
     response = get_ai_recommendation("Japan", 5, 1500, "Family")

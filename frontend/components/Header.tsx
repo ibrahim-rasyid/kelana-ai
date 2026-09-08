@@ -13,7 +13,6 @@ const AUTHENTICATED_LINKS = [
 ];
 
 const GUEST_LINKS = [
-    { href: "/assistant", label: "Assistant" },
     { href: "/login", label: "Login" },
     { href: "/register", label: "Register" },
 ];
