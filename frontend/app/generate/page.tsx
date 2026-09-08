@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthContext";
 import { FormCard } from "@/components/FormCard";
 import styles from "@/components/FormCard.module.css";
-import type { Trip } from "@/types/trip";
+import { createTrip, generateTripRecommendation, UnauthorizedError } from "@/services/tripService";
+import type { CreateTripData } from "@/services/tripService";
 
 export default function GeneratePage() {
     const router = useRouter();
@@ -28,53 +29,22 @@ export default function GeneratePage() {
         const formData = new FormData(e.currentTarget);
 
         try {
-            // Step 1: Create trip
-            const createResponse = await fetch("http://localhost:8000/api/v1/trips", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    destination: formData.get("destination"),
-                    budget: Number(formData.get("budget")),
-                    days: Number(formData.get("days")),
-                    travel_style: formData.get("travel_style"),
-                }),
-            });
+            const tripData: CreateTripData = {
+                destination: formData.get("destination") as string,
+                budget: Number(formData.get("budget")),
+                days: Number(formData.get("days")),
+                travel_style: formData.get("travel_style") as CreateTripData["travel_style"],
+            };
 
-            if (createResponse.status === 401) {
-                logout();
-                return;
-            }
-            if (!createResponse.ok) {
-                throw new Error(`Failed to create trip: ${createResponse.status}`);
-            }
-
-            const createdTrip: Trip = await createResponse.json();
-
-            // Step 2: Generate AI recommendation using the trip_id
-            const generateResponse = await fetch(
-                `http://localhost:8000/api/v1/trips/${createdTrip.id}/generate`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
-
-            if (generateResponse.status === 401) {
-                logout();
-                return;
-            }
-            if (!generateResponse.ok) {
-                throw new Error(`Failed to generate recommendation: ${generateResponse.status}`);
-            }
+            const createdTrip = await createTrip(tripData, token);
+            await generateTripRecommendation(createdTrip.id, token);
 
             router.push("/trips");
         } catch (err) {
+            if (err instanceof UnauthorizedError) {
+                logout();
+                return;
+            }
             setError(err instanceof Error ? err.message : "Failed to generate trip");
             console.error("Error:", err);
             setLoading(false);
