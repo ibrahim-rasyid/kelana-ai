@@ -71,7 +71,6 @@ export default function GeneratePage() {
                     name="destination"
                     className={styles.input}
                     placeholder="Japan"
-                    defaultValue="Japan"
                     required
                 />
             </div>
@@ -83,7 +82,6 @@ export default function GeneratePage() {
                     type="number"
                     className={styles.input}
                     placeholder="2000"
-                    defaultValue="2000"
                     required
                 />
             </div>
@@ -95,7 +93,6 @@ export default function GeneratePage() {
                     type="number"
                     className={styles.input}
                     placeholder="5"
-                    defaultValue="5"
                     required
                 />
             </div>
@@ -105,9 +102,12 @@ export default function GeneratePage() {
                 <select
                     name="travel_style"
                     className={styles.input}
-                    defaultValue="Family"
+                    defaultValue=""
                     required
                 >
+                    <option value="" disabled>
+                        Select travel style
+                    </option>
                     <option value="Family">Family</option>
                     <option value="Solo">Solo</option>
                     <option value="Couple">Couple</option>

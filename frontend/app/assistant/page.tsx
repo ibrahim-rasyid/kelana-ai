@@ -198,7 +198,7 @@ export default function AssistantPage() {
     }
 
     return (
-        <div className="mx-auto flex h-[80vh] max-w-5xl overflow-hidden rounded-lg border border-black/10 bg-white">
+        <div className="mx-auto mt-6 flex h-[80vh] max-w-5xl overflow-hidden rounded-lg border border-black/10 bg-white">
             <div className="flex w-64 shrink-0 flex-col border-r border-black/10">
                 <button
                     type="button"

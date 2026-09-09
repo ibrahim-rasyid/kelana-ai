@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthContext";
+import LogoLockup from "@/app/horizontal-lockup.svg";
 
 const AUTHENTICATED_LINKS = [
     { href: "/generate", label: "Generate" },
     { href: "/trips", label: "Trips" },
-    { href: "/profile", label: "Profile" },
     { href: "/assistant", label: "Assistant" },
+    { href: "/profile", label: "Profile" },
 ];
 
 const GUEST_LINKS = [
@@ -23,6 +25,7 @@ export function Header() {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     const navLinks = isAuthenticated ? AUTHENTICATED_LINKS : GUEST_LINKS;
+    const logoHref = isAuthenticated ? "/trips" : "/";
 
     const renderLinks = (onLinkClick?: () => void) =>
         navLinks.map(({ href, label }) => {
@@ -46,7 +49,7 @@ export function Header() {
     const renderWelcome = () =>
         isAuthenticated &&
         username && (
-            <span className="text-xs leading-tight text-black/60 sm:mr-2 sm:text-right">
+            <span className="text-xs leading-tight text-black/60">
                 Welcome back
                 <br />
                 <span className="font-medium text-black">{username}</span>
@@ -70,12 +73,16 @@ export function Header() {
     return (
         <header className="relative border-b border-black/10 px-6 py-4">
             <div className="flex items-center justify-between">
-                <span className="font-semibold text-[#4a7dbe]">KelanaAI</span>
+                <div className="flex items-center gap-3">
+                    <Link href={logoHref} className="flex items-center" aria-label="KelanaAI home">
+                        <Image src={LogoLockup} alt="KelanaAI" className="h-8 w-auto" priority />
+                    </Link>
+                    {isInitialized && <span className="hidden sm:block">{renderWelcome()}</span>}
+                </div>
 
                 {isInitialized && (
                     <>
                         <nav className="hidden items-center gap-2 sm:flex">
-                            {renderWelcome()}
                             {renderLinks()}
                             {renderLogout()}
                         </nav>
